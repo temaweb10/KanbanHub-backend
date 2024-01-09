@@ -4,19 +4,14 @@ import express from "express";
 import mongoose from "mongoose";
 import multer from "multer";
 
-import { login, register } from "./controllers/UserController.js";
-import { loginValidation, registerValidation } from "./validations.js";
-
 import KanbanCardRoute from "./routes/KanbanCard.js";
 import ProjectRoute from "./routes/Project.js";
 import UserRoute from "./routes/User.js";
 
 const app = express();
-
+dotenv.config();
 mongoose
-  .connect(
-    "mongodb+srv://pashkovdev:7cT5oDDF0oDtpvxA@cluster0.xkxqnbu.mongodb.net/kanbanhub?retryWrites=true&w=majority"
-  )
+  .connect(process.env.mongoConnectUrl)
   .then(() => {
     console.log("MONGODB WORKING");
   })

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const KanbanCardSchema = new Schema({
-  nameProject: {
+  nameCard: {
     type: String,
     required: true,
   },
@@ -10,7 +10,15 @@ const KanbanCardSchema = new Schema({
     type: String,
     required: true,
   },
-  status: {
+  columnId: {
+    type: String,
+    required: true,
+  },
+  projectId: {
+    type: String,
+    required: true,
+  },
+  codeNum: {
     type: String,
     required: true,
   },
