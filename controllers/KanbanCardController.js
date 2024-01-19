@@ -11,29 +11,25 @@ export const createKanbanCard = async (req, res) => {
         const doc = new kanbanCardModel({
           nameCard: req.body.nameCard,
           description: req.body.description,
-          columnId: req.body.columnId,
+          columnId: req.params.idColumn,
           projectId: req.body.projectId,
           creator: req.userId,
-          codeNum: `${project.code}-${project.kanbanCards.length}`,
+          codeNum: `${project.code}-${project.kanbanCardsLength}`,
         });
-        console.log(doc);
+        console.log(req.params.idColumn);
         const kanbanCard = await doc.save();
         console.log(kanbanCard);
-        await ProjectModel.findByIdAndUpdate(
-          req.params.idProject,
-          {
-            $push: {
-              kanbanCards: {
-                kanbanCardId: kanbanCard._id,
-              },
-            },
-          },
-          { new: true }
-        ).then((doc) => {
-          console.log(doc);
-        });
 
-        return res.json(kanbanCard);
+        let column = project.columns.find(
+          (col) => col.columnId === req.params.idColumn
+        );
+        if (column) {
+          column.kanbanCards.push(kanbanCard._id);
+          await project.save();
+          return res.json(kanbanCard);
+        } else {
+          return res.status(404).json({ message: "Колонна не найдена" });
+        }
       } else {
         return res.status(401).json({ message: "У вас недостаточно прав " });
       }
@@ -48,65 +44,75 @@ export const createKanbanCard = async (req, res) => {
   }
 };
 export const editKanbanCard = async (req, res) => {
-  try {
-    const project = await ProjectModel.findById(req.params.idProject);
-    if (project) {
-      const participant = project?.participants?.find(
-        (participant) => participant?.user?.toString() === req.userId
-      );
-      if (participant && participant?.role !== "viewer") {
-        const kanbanCard = await kanbanCardModel
-          .findOneAndUpdate(
-            { codeNum: req.params.codeNum },
-            {
-              nameCard: req.body.nameCard,
-              description: req.body.description,
-              columnId: req.body.columnId,
-              executor: req.body.executor,
-            },
-            { new: true }
-          )
-          .then((doc) => {
-            return res.status(200).json(doc);
-          });
+  /*  try { */
+  const project = await ProjectModel.findById(req.params.idProject);
+  if (project) {
+    const participant = project?.participants?.find(
+      (participant) => participant?.user?.toString() === req.userId
+    );
+    if (participant && participant?.role !== "viewer") {
+      await kanbanCardModel
+        .findByIdAndUpdate(
+          req.body.idKanbanCard,
+          {
+            nameCard: req.body.nameCard,
+            description: req.body.description,
+            columnId: req.body.columnId,
+            executor: req.body.executor,
+          },
+          { new: true }
+        )
+        .then((doc) => {
+          return res.status(200).json(doc);
+        });
 
-        return res.json(kanbanCard);
-      } else {
-        return res.status(401).json({ message: "У вас недостаточно прав " });
-      }
+      /*   return res.json(kanbanCard); */
     } else {
-      return res.status(500).json({ message: "Проект не найден" });
+      return res.status(401).json({ message: "У вас недостаточно прав " });
     }
-  } catch (error) {
+  } else {
+    return res.status(500).json({ message: "Проект не найден" });
+  }
+  /*   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Не удалось создать задачу",
     });
-  }
-}; //!доделать
+  } */
+};
 export const deleteKanbanCard = async (req, res) => {
   try {
-    // Найти проект по projectId из req.params.projectId
     await ProjectModel.findOne({ _id: req.params.idProject })
       .then(async (project) => {
         const participant = project?.participants?.find(
           (participant) => participant?.user?.toString() === req.userId
         );
-        console.log(participant);
+
         if (participant && participant?.role !== "viewer") {
-          await ProjectModel.findOneAndUpdate(
-            { _id: req.params.idProject },
-            {
-              $pull: { kanbanCards: { kanbanCardId: req.params.idKanbanCard } },
+          for (var i = 0; i < project.columns.length; i++) {
+            if (project.columns[i].columnId === req.body.idColumn) {
+              for (let j = 0; j < project.columns[i].kanbanCards.length; j++) {
+                if (
+                  project.columns[i].kanbanCards[j] == req.body.idKanbanCard
+                ) {
+                  const indexCardId = project.columns[i].kanbanCards.indexOf(
+                    project.columns[i].kanbanCards[j]
+                  );
+
+                  project.columns[i].kanbanCards.splice(indexCardId, 1);
+
+                  await project.save();
+                  return res
+                    .status(200)
+                    .json({ message: "Задание успешно удалено" });
+                } else {
+                  return res
+                    .status(404)
+                    .json({ message: "Задание не найдено" });
+                }
+              }
             }
-          )
-            .then(() => {
-              res.status(200).json({ message: "Задание успешно удалёно" });
-            })
-            .catch((err) => {
-              console.log(err);
-              res.status(200).json({ message: "Ошибка при удалении задачи" });
-            });
+          }
         } else {
           res
             .status(401)
@@ -121,4 +127,4 @@ export const deleteKanbanCard = async (req, res) => {
     console.log(error);
     res.status(500).json({ message: "Ошибка при удалении задачи" });
   }
-}; //!доделать
+};

@@ -20,8 +20,13 @@ export const createProject = async (req, res) => {
 export const getProject = async (req, res) => {
   try {
     const project = await ProjectModel.findById(req.params.idProject)
-      .populate("kanbanCards.kanbanCardId")
+      .populate({
+        path: "columns.kanbanCards",
+        model: "KanbanCard",
+      })
       .exec();
+    /*  .populate("kanbanCards.kanbanCardId")
+      .exec(); */
     if (project) {
       const participant = project?.participants?.find(
         (participant) => participant?.user?.toString() === req.userId
@@ -37,6 +42,20 @@ export const getProject = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Ошибка при поиске проекта" });
+  }
+};
+export const getAllProject = async (req, res) => {
+  try {
+    await ProjectModel.find({ "participants.user": req.userId })
+      .then((projects) => {
+        return res.status(200).json(projects);
+      })
+      .catch((err) => {
+        return res.status(500).json({ message: "Ошибка при поиске дашборда" });
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Ошибка при поиске дашборда" });
   }
 };
 
@@ -224,7 +243,7 @@ export const createColumnBoard = async (req, res) => {
     );
 
     if (participant && participant?.role !== "viewer") {
-      ProjectModel.findOneAndUpdate(
+      /* ProjectModel.findOneAndUpdate(
         { _id: req.params.idProject },
         {
           $push: {
@@ -238,6 +257,21 @@ export const createColumnBoard = async (req, res) => {
           },
         }
       )
+        .then(() => {
+          res.status(200).json({ message: "Колонка успешно добавлена" });
+        })
+        .catch((error) => {
+          console.log(error);
+          res.status(200).json({ message: "Ошибка при создании колонки" });
+        }); */
+      project.columns.push({
+        name: req.body.name,
+        columnId: `${req.body.name.replace(/\s/g, "")}_${new Date().getTime()}`,
+        kanbanCards: [],
+      });
+
+      await project
+        .save()
         .then(() => {
           res.status(200).json({ message: "Колонка успешно добавлена" });
         })
@@ -261,7 +295,7 @@ export const columnChangeNameBoard = async (req, res) => {
     );
 
     if (participant && participant?.role !== "viewer") {
-      ProjectModel.findOneAndUpdate(
+      /*  ProjectModel.findOneAndUpdate(
         { "columns.columnId": req.body.columnId },
         { $set: { "columns.$.name": req.body.name } },
         { new: true }
@@ -276,7 +310,17 @@ export const columnChangeNameBoard = async (req, res) => {
         .catch((error) => {
           console.log(error);
           res.status(200).json({ message: "Ошибка при изменении  колонки" });
-        });
+        }); */
+      let column = project.columns.find(
+        (col) => col.columnId === req.body.columnId
+      );
+      if (column) {
+        column.name = req.body.name;
+        await project.save();
+        return res.json(project);
+      } else {
+        return res.status(404).json({ message: "Колонна не найдена" });
+      }
     } else {
       res.status(401).json({ message: "У вас недостаточно прав " });
     }

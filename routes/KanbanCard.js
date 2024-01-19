@@ -9,16 +9,12 @@ import handleValidation from "../utils/handleValidationError.js";
 import { kanbanCardCreateValidation } from "../validations.js";
 const router = express.Router();
 
-router.post("/project/:idProject/kanbanCard/", checkAuth, createKanbanCard);
 router.post(
-  "/project/:idProject/kanbanCard/:codeNum/edit",
+  "/project/:idProject/kanbanCard-create/column/:idColumn",
   checkAuth,
-  editKanbanCard
+  createKanbanCard
 );
-router.delete(
-  "/project/:idProject/kanbanCard/:idKanbanCard",
-  checkAuth,
-  deleteKanbanCard
-);
+router.post("/project/:idProject/kanbanCardEdit", checkAuth, editKanbanCard);
+router.delete("/project/:idProject/kanbanCard", checkAuth, deleteKanbanCard);
 
 export default router;

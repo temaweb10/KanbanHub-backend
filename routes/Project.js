@@ -8,6 +8,7 @@ import {
   deleteParticipantProject,
   deleteProject,
   generateInviteLinkProject,
+  getAllProject,
   getProject,
 } from "../controllers/ProjectController.js";
 import checkAuth from "../utils/checkAuth.js";
@@ -27,6 +28,12 @@ router.get(
   checkAuth,
 
   getProject
+);
+router.get(
+  "/projects",
+  checkAuth,
+
+  getAllProject
 );
 router.delete("/project/:idProject", checkAuth, deleteProject);
 router.delete(
