@@ -42,7 +42,7 @@ router.delete(
   deleteParticipantProject
 );
 router.delete(
-  "/project/:idProject/deleteColumnBoard",
+  "/project/:idProject/deleteColumnBoard/:idColumn",
   checkAuth,
   deleteColumnBoard
 );

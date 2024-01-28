@@ -9,7 +9,6 @@ const columnSchema = new Schema({
   columnId: {
     type: String,
     required: true,
-    unique: true,
   },
   kanbanCards: [
     {
@@ -25,22 +24,12 @@ const ProjectSchema = new Schema({
     required: true,
   },
 
-  code: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  kanbanCardsLength: {
-    type: Number,
-    default: 0,
-  },
-
   columns: {
     type: [columnSchema],
     default: [
       {
-        name: "Готово",
-        columnId: "finished",
+        name: "К выполнению",
+        columnId: "forExecution",
         kanbanCards: [],
       },
       {

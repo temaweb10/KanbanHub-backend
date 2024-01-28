@@ -2,19 +2,20 @@ import jwt from "jsonwebtoken";
 import ProjectModel from "../models/Project.js";
 
 export const createProject = async (req, res) => {
+  /*       code: req.body.code, */
   try {
     const doc = new ProjectModel({
       nameProject: req.body.nameProject,
-      code: req.body.code,
+
       participants: [{ user: req.userId, role: "admin" }],
     });
 
     const project = await doc.save();
 
-    res.json(project);
+    return res.json(project);
   } catch (error) {
     console.log(error);
-    res.json({ message: "Не удалось создать проект" });
+    return res.status(403).json({ message: "Не удалось создать проект" });
   }
 };
 export const getProject = async (req, res) => {
@@ -270,15 +271,18 @@ export const createColumnBoard = async (req, res) => {
         kanbanCards: [],
       });
 
-      await project
-        .save()
-        .then(() => {
-          res.status(200).json({ message: "Колонка успешно добавлена" });
+      await project.save().catch((error) => {
+        console.log(error);
+        res.status(200).json({ message: "Ошибка при создании колонки" });
+      });
+
+      const projectNew = await ProjectModel.findById(req.params.idProject)
+        .populate({
+          path: "columns.kanbanCards",
+          model: "KanbanCard",
         })
-        .catch((error) => {
-          console.log(error);
-          res.status(200).json({ message: "Ошибка при создании колонки" });
-        });
+        .exec();
+      return res.status(200).json(projectNew.columns);
     } else {
       res.status(401).json({ message: "У вас недостаточно прав " });
     }
@@ -328,7 +332,7 @@ export const columnChangeNameBoard = async (req, res) => {
     res.status(500).json({ message: "Проект не найден" });
   }
 };
-//!ПЕРЕДЕЛАТЬ
+
 export const deleteColumnBoard = async (req, res) => {
   const project = await ProjectModel.findById(req.params.idProject);
   if (project) {
@@ -342,7 +346,7 @@ export const deleteColumnBoard = async (req, res) => {
       }
 
       project.columns = project.columns.filter(
-        (column) => column.columnId !== req.body.columnId
+        (el) => el.columnId !== req.params.idColumn
       );
 
       await project.save();

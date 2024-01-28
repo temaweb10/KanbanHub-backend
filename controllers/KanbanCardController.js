@@ -7,26 +7,35 @@ export const createKanbanCard = async (req, res) => {
       const participant = project?.participants?.find(
         (participant) => participant?.user?.toString() === req.userId
       );
-      if (participant && participant?.role !== "viewer") {
-        const doc = new kanbanCardModel({
-          nameCard: req.body.nameCard,
-          description: req.body.description,
-          columnId: req.params.idColumn,
-          projectId: req.body.projectId,
-          creator: req.userId,
-          codeNum: `${project.code}-${project.kanbanCardsLength}`,
-        });
-        console.log(req.params.idColumn);
-        const kanbanCard = await doc.save();
-        console.log(kanbanCard);
 
+      if (participant && participant?.role !== "viewer") {
+        /*   codeNum: `${project.code}-${project.kanbanCardsLength}`, */
+        console.log(req.body.columnId);
         let column = project.columns.find(
-          (col) => col.columnId === req.params.idColumn
+          (col) => col.columnId === req.body.columnId
         );
         if (column) {
+          const doc = new kanbanCardModel({
+            nameCard: req.body.nameCard,
+
+            columnId: req.body.columnId,
+            projectId: req.params.idProject,
+            creator: req.userId,
+          });
+          /* console.log(req.params.idColumn); */
+          const kanbanCard = await doc.save();
+          console.log(kanbanCard);
+
           column.kanbanCards.push(kanbanCard._id);
           await project.save();
-          return res.json(kanbanCard);
+          /* return res.json(kanbanCard); */
+          const projectNew = await ProjectModel.findById(req.params.idProject)
+            .populate({
+              path: "columns.kanbanCards",
+              model: "KanbanCard",
+            })
+            .exec();
+          return res.status(200).json(projectNew.columns);
         } else {
           return res.status(404).json({ message: "Колонна не найдена" });
         }
@@ -59,6 +68,7 @@ export const editKanbanCard = async (req, res) => {
             description: req.body.description,
             columnId: req.body.columnId,
             executor: req.body.executor,
+            priority: req.body.priority,
           },
           { new: true }
         )
@@ -126,5 +136,37 @@ export const deleteKanbanCard = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Ошибка при удалении задачи" });
+  }
+};
+export const updateColumns = async (req, res) => {
+  try {
+    /*  const project = await ProjectModel.findById(req.params.idProject).catch(
+      (err) => {
+        console.log(err);
+        return res.status(404).json({ message: "Проект не найден" });
+      }
+    ); */
+    ProjectModel.findByIdAndUpdate(
+      req.params.idProject,
+      {
+        columns: req.body.newColumns,
+      },
+      { new: true }
+    )
+      .populate({
+        path: "columns.kanbanCards",
+        model: "KanbanCard",
+      })
+      .exec()
+      .then((newColumns) => {
+        return res.status(200).json(newColumns);
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(404).json({ message: "Проект не найден" });
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Ошибка при обновлении колоннок" });
   }
 };

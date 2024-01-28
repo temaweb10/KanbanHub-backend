@@ -8,7 +8,7 @@ const KanbanCardSchema = new Schema({
   },
   description: {
     type: String,
-    required: true,
+    /*     required: true, */
   },
   columnId: {
     type: String,
@@ -18,9 +18,13 @@ const KanbanCardSchema = new Schema({
     type: String,
     required: true,
   },
-  codeNum: {
+  /*  codeNum: {
     type: String,
     required: true,
+  }, */
+  priority: {
+    type: String,
+    default: "low",
   },
   comments: [
     {
@@ -31,5 +35,5 @@ const KanbanCardSchema = new Schema({
   executor: { type: Schema.Types.ObjectId, ref: "User" },
   creator: { type: Schema.Types.ObjectId, ref: "User", required: true },
 });
-
+/* priority:|| low , medium , high , freez  */
 export default mongoose.model("KanbanCard", KanbanCardSchema);
