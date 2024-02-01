@@ -10,6 +10,7 @@ import {
   generateInviteLinkProject,
   getAllProject,
   getProject,
+  getUsersInProject,
 } from "../controllers/ProjectController.js";
 import checkAuth from "../utils/checkAuth.js";
 import handleValidation from "../utils/handleValidationError.js";
@@ -28,6 +29,12 @@ router.get(
   checkAuth,
 
   getProject
+);
+router.get(
+  "/project/:idProject/users",
+  checkAuth,
+
+  getUsersInProject
 );
 router.get(
   "/projects",
@@ -51,11 +58,8 @@ router.get(
   checkAuth,
   generateInviteLinkProject
 );
-router.get(
-  "/project/:idProject/acceptInviteLink",
-  checkAuth,
-  acceptInviteLinkProject
-);
+
+router.post("/project/acceptInviteLink", checkAuth, acceptInviteLinkProject);
 
 router.post("/project/:idProject/columnCreate", checkAuth, createColumnBoard);
 router.post(

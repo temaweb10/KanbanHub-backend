@@ -45,6 +45,29 @@ export const getProject = async (req, res) => {
     return res.status(500).json({ message: "Ошибка при поиске проекта" });
   }
 };
+
+export const getUsersInProject = async (req, res) => {
+  try {
+    const project = await ProjectModel.findById(req.params.idProject).populate({
+      path: "participants.user",
+      model: "Users",
+      select: "fullName",
+    }); /* .populate({
+      path: "participants.user",
+      model: "Users",
+    }); */
+    console.log(project.participants);
+
+    if (project) {
+      return res.json(project?.participants);
+    } else {
+      return res.status(404).json({ message: "Проект не найден" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "Ошибка при поиске проекта" });
+  }
+};
 export const getAllProject = async (req, res) => {
   try {
     await ProjectModel.find({ "participants.user": req.userId })
@@ -172,68 +195,46 @@ export const generateInviteLinkProject = async (req, res) => {
 
 export const acceptInviteLinkProject = async (req, res) => {
   const token = req.body.token;
-
-  await ProjectModel.findOne({ _id: req.params.idProject }).then(
-    async (project) => {
-      if (project) {
-        console.log(project?.participants);
-        const participant = project?.participants?.find((participant) => {
-          return participant?.user?.toString() === req.userId;
-        });
-
-        if (participant !== undefined) {
-          return res.status(403).json({ message: "Вы уже состоите в проекте" });
-        } else {
-          if (token) {
-            jwt.verify(
-              token,
-              "kanbanhub_invite_link_jwt_secret",
-              async function (err, decoded) {
-                if (err) {
-                  return res.status(403).json({
-                    message: "Ссылка устарела",
-                  });
-                }
-                ProjectModel.findByIdAndUpdate(
-                  decoded._idProject,
-                  {
-                    $push: {
-                      participants: {
-                        user: req.userId,
-
-                        role: decoded.role,
-                      },
-                    },
-                  },
-                  { new: true }
-                )
-                  .then((doc) => {
-                    console.log(doc);
-                    return res
-                      .status(200)
-                      .json({ message: "Успешное вступление в проект" });
-                  })
-                  .catch((error) => {
-                    console.log(error);
-                    return res
-                      .status(200)
-                      .json({ message: "Ошибка при вступлении проекта" });
-                  });
-              }
-            );
-          } else {
-            return res.status(403).json({
-              message: "Нет доступа",
-            });
-          }
+  console.log(token);
+  if (token) {
+    jwt.verify(
+      token,
+      "kanbanhub_invite_link_jwt_secret",
+      async function (err, decoded) {
+        if (err) {
+          console.log(err);
+          return res.status(403).json({
+            message: "Ссылка устарела",
+          });
         }
-      } else {
-        return res.status(404).json({
-          message: "Проект не найден",
-        });
+
+        const project = await ProjectModel.findById(decoded._idProject);
+        if (project) {
+          const participant = project?.participants?.find((participant) => {
+            return participant?.user?.toString() === req.userId;
+          });
+
+          if (participant !== undefined) {
+            return res
+              .status(403)
+              .json({ message: "Вы уже состоите в проекте" });
+          }
+          project.participants.push({
+            user: req.userId,
+
+            role: decoded.role,
+          });
+          console.log(project.participants);
+          project.save(project);
+          return res.status(200).json({ idProject: project._id });
+        } else {
+          return res.status(404).json({
+            message: "Проект не найден",
+          });
+        }
       }
-    }
-  );
+    );
+  }
 };
 
 export const createColumnBoard = async (req, res) => {

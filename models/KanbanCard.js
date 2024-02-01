@@ -24,7 +24,7 @@ const KanbanCardSchema = new Schema({
   }, */
   priority: {
     type: String,
-    default: "low",
+    default: "none",
   },
   comments: [
     {
@@ -35,5 +35,5 @@ const KanbanCardSchema = new Schema({
   executor: { type: Schema.Types.ObjectId, ref: "User" },
   creator: { type: Schema.Types.ObjectId, ref: "User", required: true },
 });
-/* priority:|| low , medium , high , freez  */
+/* priority:|| low , medium , high , freez,none  */
 export default mongoose.model("KanbanCard", KanbanCardSchema);

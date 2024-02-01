@@ -21,6 +21,9 @@ export const createKanbanCard = async (req, res) => {
             columnId: req.body.columnId,
             projectId: req.params.idProject,
             creator: req.userId,
+
+            executor: req.body.executor,
+            priority: req.body.priority,
           });
           /* console.log(req.params.idColumn); */
           const kanbanCard = await doc.save();
