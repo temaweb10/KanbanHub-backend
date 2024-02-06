@@ -9,11 +9,10 @@ export const createKanbanCard = async (req, res) => {
       );
 
       if (participant && participant?.role !== "viewer") {
-        /*   codeNum: `${project.code}-${project.kanbanCardsLength}`, */
-        console.log(req.body.columnId);
         let column = project.columns.find(
           (col) => col.columnId === req.body.columnId
         );
+        console.log(req.body.executor);
         if (column) {
           const doc = new kanbanCardModel({
             nameCard: req.body.nameCard,
@@ -25,9 +24,8 @@ export const createKanbanCard = async (req, res) => {
             executor: req.body.executor,
             priority: req.body.priority,
           });
-          /* console.log(req.params.idColumn); */
+
           const kanbanCard = await doc.save();
-          console.log(kanbanCard);
 
           column.kanbanCards.push(kanbanCard._id);
           await project.save();
@@ -55,6 +53,40 @@ export const createKanbanCard = async (req, res) => {
     });
   }
 };
+
+export const getKanbanCard = async (req, res) => {
+  console.log(req.params.idProject);
+  console.log(req.params.idKanbanCard);
+  try {
+    const project = await ProjectModel.findById(req.params.idProject);
+    if (project) {
+      const participant = project?.participants?.find(
+        (participant) => participant?.user?.toString() === req.userId
+      );
+
+      if (participant) {
+        const kanbanCard = await kanbanCardModel.findById(
+          req.params.idKanbanCard
+        );
+        if (kanbanCard) {
+          res.status(200).json(kanbanCard);
+        } else {
+          return res.status(404).json({ message: "Задание не найдено" });
+        }
+      } else {
+        return res.status(401).json({ message: "У вас недостаточно прав " });
+      }
+    } else {
+      return res.status(404).json({ message: "Проект не найден" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Не удалось создать задачу",
+    });
+  }
+};
+
 export const editKanbanCard = async (req, res) => {
   /*  try { */
   const project = await ProjectModel.findById(req.params.idProject);

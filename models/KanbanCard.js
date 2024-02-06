@@ -32,7 +32,11 @@ const KanbanCardSchema = new Schema({
       text: String,
     },
   ],
-  executor: { type: Schema.Types.ObjectId, ref: "User" },
+  executor: [
+    {
+      user: { type: Schema.Types.ObjectId, ref: "User" },
+    },
+  ],
   creator: { type: Schema.Types.ObjectId, ref: "User", required: true },
 });
 /* priority:|| low , medium , high , freez,none  */

@@ -3,6 +3,7 @@ import {
   createKanbanCard,
   deleteKanbanCard,
   editKanbanCard,
+  getKanbanCard,
   updateColumns,
 } from "../controllers/KanbanCardController.js";
 import checkAuth from "../utils/checkAuth.js";
@@ -14,6 +15,11 @@ router.post(
   "/project/:idProject/kanbanCardCreate",
   checkAuth,
   createKanbanCard
+);
+router.get(
+  "/project/:idProject/kanbanCard/:idKanbanCard",
+  checkAuth,
+  getKanbanCard
 );
 router.post("/project/:idProject/kanbanCardEdit", checkAuth, editKanbanCard);
 router.post("/project/:idProject/updateColumns", checkAuth, updateColumns);

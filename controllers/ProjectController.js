@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import ProjectModel from "../models/Project.js";
+import UserModel from "../models/User.js";
 
 export const createProject = async (req, res) => {
   /*       code: req.body.code, */
@@ -24,6 +25,11 @@ export const getProject = async (req, res) => {
       .populate({
         path: "columns.kanbanCards",
         model: "KanbanCard",
+      })
+      .populate({
+        path: "columns.kanbanCards.executor",
+        model: "KanbanCard",
+        select: "fullName _id",
       })
       .exec();
     /*  .populate("kanbanCards.kanbanCardId")
@@ -224,9 +230,17 @@ export const acceptInviteLinkProject = async (req, res) => {
 
             role: decoded.role,
           });
-          console.log(project.participants);
+
+          const inviter = await UserModel.findById(decoded._idInviter).select(
+            "fullName"
+          );
+
           project.save(project);
-          return res.status(200).json({ idProject: project._id });
+          return res.status(200).json({
+            idProject: project._id,
+            _idInviter: decoded._idInviter,
+            inviterFullName: inviter.fullName,
+          });
         } else {
           return res.status(404).json({
             message: "Проект не найден",
