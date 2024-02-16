@@ -62,9 +62,9 @@ export const getUsersInProject = async (req, res) => {
       path: "participants.user",
       model: "Users",
     }); */
-    console.log(project.participants);
 
     if (project) {
+      console.log(project?.participants);
       return res.json(project?.participants);
     } else {
       return res.status(404).json({ message: "Проект не найден" });
