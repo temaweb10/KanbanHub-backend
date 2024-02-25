@@ -23,7 +23,7 @@ const ProjectSchema = new Schema({
     type: String,
     required: true,
   },
-
+  avatarUrl: String,
   columns: {
     type: [columnSchema],
     default: [
