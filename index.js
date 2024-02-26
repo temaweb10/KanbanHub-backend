@@ -31,11 +31,12 @@ app.use(express.json());
 app.use(UserRoute);
 app.use(KanbanCardRoute);
 app.use(ProjectRoute);
-
+app.use("/uploads", express.static("uploads"));
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const idProject = req.params.idProject;
-    const uploadPath = `uploads/projects/project_${idProject}/avatar`;
+    const uploadPath = `uploads/projects/`;
+    /* const uploadPath = `uploads/projects/project_${idProject}/avatar`; */
 
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });

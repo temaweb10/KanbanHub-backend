@@ -123,6 +123,20 @@ export const deleteProject = async (req, res) => {
     res.status(500).json({ message: "Ошибка при удалении проекта" });
   }
 };
+
+export const editProject = async (req, res) => {
+  ProjectModel.findByIdAndUpdate(req.params.idProject, {
+    nameProject: req.body.nameProject,
+  })
+    .then(() => {
+      return res.status(200).json({ message: "Успешное изменение дашбоарда" });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500);
+    });
+};
+
 export const deleteParticipantProject = async (req, res) => {
   try {
     // Найти проект по projectId из req.params.projectId

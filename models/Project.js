@@ -24,6 +24,7 @@ const ProjectSchema = new Schema({
     required: true,
   },
   avatarUrl: String,
+  avatarColor: String,
   columns: {
     type: [columnSchema],
     default: [

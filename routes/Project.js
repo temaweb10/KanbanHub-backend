@@ -7,6 +7,7 @@ import {
   deleteColumnBoard,
   deleteParticipantProject,
   deleteProject,
+  editProject,
   generateInviteLinkProject,
   getAllProject,
   getProject,
@@ -53,6 +54,7 @@ router.delete(
   checkAuth,
   deleteColumnBoard
 );
+router.post("/project/:idProject/edit", checkAuth, editProject);
 router.get(
   "/project/:idProject/generateInviteLink",
   checkAuth,
