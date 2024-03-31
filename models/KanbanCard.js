@@ -38,6 +38,10 @@ const KanbanCardSchema = new Schema({
     },
   ],
   creator: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  tags: {
+    type: Array,
+    default: [],
+  }
 });
 /* priority:|| low , medium , high , freez,none  */
 export default mongoose.model("KanbanCard", KanbanCardSchema);
