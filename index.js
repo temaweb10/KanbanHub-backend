@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import multer from "multer";
 import { Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
+import {findAndDeleteFile} from "./utils/findAndDeleteFile.js";
 import ProjectModel from "./models/Project.js";
 import KanbanCardRoute from "./routes/KanbanCard.js";
 import ProjectRoute from "./routes/Project.js";
@@ -34,18 +35,28 @@ app.use(ProjectRoute);
 app.use("/uploads", express.static("uploads"));
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+
+    const format = file.originalname.slice(file.originalname.lastIndexOf('.') + 1);
     const idProject = req.params.idProject;
     const uploadPath = `uploads/projects/`;
-    /* const uploadPath = `uploads/projects/project_${idProject}/avatar`; */
+
+    findAndDeleteFile('./uploads/projects/',`project-avatar_${idProject}`)
 
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
 
+    const avatarUrl = `project-avatar_${idProject}.${format.toLowerCase()}`
+
+
+
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    cb(null, `${uuidv4()}_${file.originalname}`);
+    const format = file.originalname.slice(file.originalname.lastIndexOf('.') + 1);
+    const idProject = req.params.idProject;
+    const avatarUrl = `project-avatar_${idProject}.${format.toLowerCase()}`
+    cb(null, avatarUrl);
   },
 });
 
@@ -54,9 +65,13 @@ const upload = multer({ storage: storage });
 app.post(
   "/project/:idProject/upload-avatar",
   upload.single("avatar"),
-  (req, res) => {
-    console.log(req.filename);
-    res.status(200).json({ message: "Успешная загрузка аватара" });
+  async (req, res) => {
+
+    const format = req.file.originalname.slice(req.file.originalname.lastIndexOf('.') + 1);
+    const idProject = req.params.idProject;
+    const avatarUrl = `uploads/projects/project-avatar_${idProject}.${format.toLowerCase()}`
+    await ProjectModel.findByIdAndUpdate(idProject, {avatarUrl: avatarUrl, avatarColor: ''})
+    res.status(200).json({avatarUrl:avatarUrl});
   }
 );
 
