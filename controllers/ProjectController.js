@@ -127,6 +127,8 @@ export const deleteProject = async (req, res) => {
 export const editProject = async (req, res) => {
   ProjectModel.findByIdAndUpdate(req.params.idProject, {
     nameProject: req.body.nameProject,
+    avatarUrl: req.body.avatarUrl,
+    avatarColor: req.body.avatarColor,
   }, {new: true})
     .then((response) => {
       return res.status(200).json(response);
